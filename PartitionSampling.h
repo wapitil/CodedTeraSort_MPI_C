@@ -9,7 +9,7 @@ using namespace std;
 /*
   在 MapReduce 中，分区（Partition）是指对输入键值对进行哈希或范围划分的过程，
   其主要目的是将具有相同 key 的键值对映射到同一个 reduce task 进行处理。分区的定义和实现通常由 Partitioner 类完成。
-*/s
+*/
 class PartitionSampling {
  private:
   const Configuration* conf;  // 一个指向常量 Configuration 对象的指针
