@@ -2,7 +2,7 @@ CC = mpic++
 DFLAGS = -std=c++11 -Wall 
 DFLAGS = -std=c++11 -Wall -g -O0
 
-all: TeraSort CodedTeraSort Splitter InputPlacement InputPlacementRandom
+all: TeraSort Splitter 
 
 clean:
 	rm -f *.o
@@ -31,7 +31,7 @@ PartitionSampling.o: PartitionSampling.cc PartitionSampling.h Configuration.h
 Utility.o: Utility.cc Utility.h
 	$(CC) $(DFLAGS) -c Utility.cc
 
-InputSplitter.o: InputSplitter.cc InputSplitter.h Configuration.h CodedConfiguration.h
+InputSplitter.o: InputSplitter.cc InputSplitter.h Configuration.h 
 	$(CC) $(DFLAGS) -c InputSplitter.cc
 
 main.o: main.cc Configuration.h
@@ -43,14 +43,3 @@ Master.o: Master.cc Master.h Configuration.h
 Worker.o: Worker.cc Worker.h Configuration.h
 	$(CC) $(DFLAGS) -c Worker.cc
 
-
-
-
-CodedMain.o: CodedMain.cc CodedConfiguration.h
-	$(CC) $(DFLAGS) -c CodedMain.cc
-
-CodedMaster.o: CodedMaster.cc CodedMaster.h CodedConfiguration.h
-	$(CC) $(DFLAGS) -c CodedMaster.cc
-
-CodedWorker.o: CodedWorker.cc CodedWorker.h CodedConfiguration.h
-	$(CC) $(DFLAGS) -c CodedWorker.cc

@@ -209,7 +209,7 @@ void Worker::execMap()
     创建 partitionCollection 字典并将每个分区的数据存储在其中，可以让 Reduce 任务更加高效地获取到自己需要的数据
   */
   for (unsigned int i = 0; i < conf->getNumReducer(); i++) { 
-    partitionCollection.insert(pair<unsigned int, LineList*>(i, new LineList));/
+    partitionCollection.insert(pair<unsigned int, LineList*>(i, new LineList));
   }
 
   // MAP  Map 阶段的主要实现代码，其目的是将输入文件按照键值分配到不同的分区中
