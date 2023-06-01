@@ -7,12 +7,9 @@
 
 using namespace std;
 /*
-  在Hadoop中，分区列表是指将大量数据划分为若干个小数据块的过程.
-  这些小数据块通常具有相同的大小，并被存储到不同的物理位置上，以便在并行计算中使用。
-  分区列表可以是根据特定准则划分数据，如哈希码或某种排序规则。
-  在 MapReduce 计算模型中，数据被分配到不同的分区中，并分别处理每个分区中的数据。
-  PartitionSampling 类提供了一个创建分区列表的方法，该方法利用配置文件中的参数来决定如何随机地分配键到分区中。
-*/
+  在 MapReduce 中，分区（Partition）是指对输入键值对进行哈希或范围划分的过程，
+  其主要目的是将具有相同 key 的键值对映射到同一个 reduce task 进行处理。分区的定义和实现通常由 Partitioner 类完成。
+*/s
 class PartitionSampling {
  private:
   const Configuration* conf;  // 一个指向常量 Configuration 对象的指针

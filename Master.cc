@@ -20,17 +20,18 @@ void Master::run()
     //如果断言的条件为 false,也就是条件不满足那么程序会终止并输出错误信息。
   }
 
-  // GENERATE LIST OF PARTITIONS. // 生成分区列表
-  PartitionSampling partitioner;  // 分区采样
+  // GENERATE LIST OF PARTITIONS. 生成分区列表
+  PartitionSampling partitioner;  // 调用构造函数
   partitioner.setConfiguration(&conf); // 设置配置
   PartitionList* partitionList = partitioner.createPartitions();    // 创建分区
  
   // BROADCAST CONFIGURATION TO WORKERS 广播配置到工作节点
   /*
-    MPI_Bcast 函数的参数依次为要发送/接收的数据指针、数据长度、数据类型、消息源、通信域。
+    PI_Bcast 函数的参数依次为要发送/接收的数据指针、数据长度、数据类型、消息源、通信域。
     第一个参数是指向配置信息结构体 conf 的指针
     第二个参数是 sizeof(Configuration) 表示 conf 的大小
-    第三个参数是广播源的进程编号 0，表示将从进程 0 中读取广播的数据，并将其发送给其它所有工作节点。
+    第三个参数是 MPI_CHAR 表示 conf 的数据类型是字符型
+    第四个参数是广播源的进程编号 0，表示将从进程 0 中读取广播的数据，并将其发送给其它所有工作节点。
     最后一个参数是通信域，通常将这个域设置为 MPI_COMM_WORLD，表示将所有进程归为同一通信域中。
   */
   MPI_Bcast(&conf, sizeof(Configuration), MPI_CHAR, 0, MPI_COMM_WORLD);
@@ -49,14 +50,14 @@ void Master::run()
     MPI_Bcast(partition, conf.getKeySize() + 1, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
   }
 
-  // TIME BUFFER // 时间缓冲区
+  // TIME BUFFER  时间缓冲区
   int numWorker = conf.getNumReducer(); // 获取工作节点数
   double rcvTime[numWorker + 1]; //  定义了一个数组，用于记录每个 reducer 节点处理 Map 阶段任务所耗费的时间，数组长度为 numWorker + 1，其中 +1 是为了防止数组越界。
   double rTime = 0; // rTime 用于记录当前 reducer 节点处理数据所花费的时间，初始值为 0。
   double avgTime; // avgTime 用于记录所有 reducer 节点处理数据的平均时间。
   double maxTime; // maxTime 用于记录所有 reducer 节点处理数据的最大时间。
 
-  // COMPUTE MAP TIME // 计算 Map 阶段时间
+  // COMPUTE MAP TIME 计算 Map 阶段时间
   /*
     第一个参数 &rTime 表示发送的数据缓冲区地址，即本节点的 Map 处理时间。
     第二个参数 1 该程序中每个节点只需要发送本节点的 Shuffle 阶段时间给根节点 0 即可，不需要发送其他数据

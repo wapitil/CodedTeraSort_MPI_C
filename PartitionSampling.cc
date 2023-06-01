@@ -29,19 +29,22 @@ PartitionList* PartitionSampling::createPartitions()
   }
 
   ifstream inputFile( conf->getInputPath(), ios::in | ios::binary | ios::ate ); // 以二进制读写方式打开输入文件
+  
   if ( !inputFile.is_open() ) { // 如果文件打开失败
     cout << "Cannot open input file " << conf->getInputPath() << endl; // 无法打开输入文件
     assert( false );
   }
 
-  PartitionList keyList; // `PartitionList` 是一个 `vector` 类型的对象，它的每个元素都是一个指向 `unsigned char` 类型的指针
+  
+  PartitionList keyList; 
   long unsigned int keySize = conf->getKeySize();   // 键的大小
-  unsigned long fileSize = inputFile.tellg();     // `tellg()` 函数返回当前文件指针的位置 `fileSize` 是输入文件的大小
-  long unsigned int numSamples = min( conf->getNumSamples(), fileSize / conf->getLineSize() ); // 采样数
+  unsigned long fileSize = inputFile.tellg();     // tellg()表示当前读取位置与输入文件开头之间的字节数 也就是输入文件的大小
+  long unsigned int numSamples = min( conf->getNumSamples(), fileSize / conf->getLineSize() ); // 用户设定的采样数和文件的行数相比较，选择小的那个作为采样数 numSamples
 
   
   // Sample keys 从输入文件中随机抽取指定数量的样本记录，并将这些样本记录存储在一个键列表（keyList）数据结构中。
   inputFile.seekg( 0 ); // 将文件指针移动到文件开头
+  long unsigned int gapSkip = ( ( fileSize / conf->getLineSize() ) / numSamples - 1 ) * conf->getLineSize(); 
   /*
     gapSkip 是指两个样本记录之间的跨度，表示一个样本和下一个样本之间在输入文件中的距离。
     fileSize 表示输入文件的大小，conf->getLineSize() 表示每行记录的长度，numSamples 表示要采样的记录数量。
@@ -49,11 +52,10 @@ PartitionList* PartitionSampling::createPartitions()
     因此，每次执行完这条语句后，文件指针会向前移动 conf->getValueSize() + gapSkip 个字节，从而指向下一个样本记录的开头位置，以便程序能够读取和处理下一个样本记录。
     为了让样本记录集合是具有充分代表性
   */
-  long unsigned int gapSkip = ( ( fileSize / conf->getLineSize() ) / numSamples - 1 ) * conf->getLineSize(); 
   for ( long unsigned int i = 0; i < numSamples; i++ ) { // 从输入文件中随机抽取指定数量的样本记录
     unsigned char *keyBuff = new unsigned char [ keySize + 1 ];
     if ( keyBuff == NULL ) {
-      cout << "Cannot allocate memory to sample keys.\n"; // 无法为样本记录分配内存
+      cout << "Cannot allocate memory to sample keys.\n"; // 防止在从输入文件中抽取样本记录时，因为内存不足而无法为样本记录分配内存空间
       assert( false );
     }
     inputFile.read( (char *) keyBuff, keySize );   // 读取样本记录的键

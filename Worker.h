@@ -38,8 +38,8 @@ class Worker
   void run();
 
  private:
-  void execMap(); // 执行映射
-  void execReduce();// 执行归约
+  void execMap(); // 执行map
+  void execReduce();// 执行reduce
   void printLocalList(); // 打印本地列表
   void printPartitionCollection();// 打印分区集合
   void outputLocalList();// 输出本地列表
