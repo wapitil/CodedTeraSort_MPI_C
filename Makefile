@@ -20,7 +20,7 @@ TeraSort: main.o Master.o Worker.o Trie.o Utility.o PartitionSampling.o
 	$(CC) $(DFLAGS) -o TeraSort main.o Master.o Worker.o Trie.o Utility.o PartitionSampling.o
 
 Splitter: InputSplitter.o Configuration.h 
-	$(CC) $(DFLAGS) -o Splitter Splitter.cc InputSplitter.o
+	$(CC) $(DFLAGS) -o Spltter Splitter.cc InputSplitter.o
 
 Trie.o: Trie.cc Trie.h
 	$(CC) $(DFLAGS) -c Trie.cc

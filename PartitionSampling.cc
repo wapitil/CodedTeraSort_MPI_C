@@ -13,7 +13,7 @@ using namespace std;
 
 PartitionSampling::PartitionSampling() // 构造函数
 {
-  conf = NULL;
+  conf = NULL;2
 }
 
 PartitionSampling::~PartitionSampling()
@@ -31,7 +31,7 @@ PartitionList* PartitionSampling::createPartitions()
   ifstream inputFile( conf->getInputPath(), ios::in | ios::binary | ios::ate ); // 以二进制读写方式打开输入文件
   
   if ( !inputFile.is_open() ) { // 如果文件打开失败
-    cout << "Cannot open input file " << conf->getInputPath() << endl; // 无法打开输入文件
+    cout << "Cannot open input file " << conf->getInputPath() << endl; 
     assert( false );
   }
 
@@ -67,16 +67,17 @@ PartitionList* PartitionSampling::createPartitions()
   
     
   // Sort sampled keys 按照键的字典序对样本记录的键进行排序
-  stable_sort( keyList.begin(), keyList.end(), cmpKey ); // `stable_sort()` 函数是一个稳定的排序函数，它能够保证排序后的相对位置没有发生改变
+  stable_sort( keyList.begin(), keyList.end(), cmpKey ); // `stable_sort()` 函数是一个稳定的排序函数，它能够保证排序后的具有相同键值的样本相对位置没有发生改变
   
-  // Partition keys 一个键值列表 keyList 划分为多个子列表，每个子列表称作一个 partition，每个 partition 中的键值对都会被发送到同一个 reducer 节点上进行处理。 
+  /*
+    Partition keys 一个键值列表 keyList 划分为多个子列表，每个子列表称作一个 partition，每个 partition 中的键值对都会被发送到同一个 reducer 节点上进行处理。 
+  */
   PartitionList* partitions = new PartitionList; 
   long unsigned int numPartitions = conf->getNumReducer(); //从配置信息中读取 reducer 的数量（即划分的 partition 数量）
   long unsigned int sizePartition = round( numSamples / numPartitions ); // 每个 partition 中包含的样本记录数量
   for ( unsigned long int i = 1; i < numPartitions; i++ ) { 
     unsigned char *keyBuff = new unsigned char [ keySize + 1 ]; // 为每个 partition 分配内存
     if ( keyBuff == NULL ) { // 如果分配内存失败
-      cout << "Cannot allocate memory for partition keys.\n";
       assert( false );
     }
     memcpy( keyBuff, keyList.at( i * sizePartition ), keySize + 1 ); // 将每个 partition 的第一个元素存储在 keyBuff 中

@@ -12,22 +12,25 @@ using namespace std;
 
 typedef vector< unsigned char* > LineList;
 
-void testBroadcastRoot( int, LineList&, MPI::Intracomm& );
-void testBroadcast( int, MPI::Intracomm& );
-void testUnicastRoot( int, LineList&, MPI::Intracomm& );
-void testUnicast( int, MPI::Intracomm& );
-void testScatterRoot( int, LineList&, MPI::Intracomm& );
-void testScatter( int, MPI::Intracomm& );
+void testBroadcastRoot(int, LineList&, MPI_Comm&);
+void testBroadcast(int, MPI_Comm&);
+void testUnicastRoot(int, LineList&, MPI_Comm&);
+void testUnicast(int, MPI_Comm&);
+void testScatterRoot(int, LineList&, MPI_Comm&);
+void testScatter(int, MPI_Comm&);
 
 int main( int argc, char* argv[] )
 {
   clock_t time;
   LineList lineList;
   
-  MPI::Init();
-  MPI::Intracomm bcComm = MPI::COMM_WORLD.Dup();  
-  int rank = bcComm.Get_rank();
-  int numNode = bcComm.Get_size();
+  MPI_Init(NULL, NULL);
+  MPI_Comm bcComm;
+  MPI_Comm_dup(MPI_COMM_WORLD, &bcComm);
+  int rank;
+  MPI_Comm_rank(bcComm, &rank);
+  int numNode;
+  MPI_Comm_size(bcComm, &numNode);
 
   LineList mlineList;
   
@@ -64,50 +67,50 @@ int main( int argc, char* argv[] )
   }
 
 
-  // Broadcast measurement
+// Broadcast measurement
   if( rank == 0 ) {
-    bcComm.Barrier();
+    MPI_Barrier(bcComm);
     time = clock();
-    testBroadcastRoot( numNode, lineList, bcComm );
-    bcComm.Barrier();  
+    testBroadcastRoot(numNode, lineList, bcComm);
+    MPI_Barrier(bcComm);
     time = clock() - time;
-    cout << rank << ": Broadcast time is " << double( time ) / CLOCKS_PER_SEC << " seconds.\n";
+    cout << rank << ": Broadcast time is " << double(time) / CLOCKS_PER_SEC << " seconds.\n";
   }
   else {
-    bcComm.Barrier();
-    testBroadcast( rank, bcComm );
-    bcComm.Barrier();
+    MPI_Barrier(bcComm);
+    testBroadcast(rank, bcComm);
+    MPI_Barrier(bcComm);
   }
 
   
-  // Unicast measurement
+ // Unicast measurement
   if( rank == 0 ) {
-    bcComm.Barrier();
+    MPI_Barrier(bcComm);
     time = clock();
-    testUnicastRoot( numNode, lineList, bcComm );
-    bcComm.Barrier();
+    testUnicastRoot(numNode, lineList, bcComm);
+    MPI_Barrier(bcComm);
     time = clock() - time;
-    cout << rank << ": Unicast time is " << double( time ) / CLOCKS_PER_SEC << " seconds.\n";  
+    cout << rank << ": Unicast time is " << double(time) / CLOCKS_PER_SEC << " seconds.\n";
   }
   else {
-    bcComm.Barrier();
-    testUnicast( rank, bcComm );
-    bcComm.Barrier();
+    MPI_Barrier(bcComm);
+    testUnicast(rank, bcComm);
+    MPI_Barrier(bcComm);
   }
 
   // Scatter measurement
   if( rank == 0 ) {
-    bcComm.Barrier();
+    MPI_Barrier(bcComm);
     time = clock();
-    testScatterRoot( numNode, mlineList, bcComm );
-    bcComm.Barrier();  
+    testScatterRoot(numNode, mlineList, bcComm);
+    MPI_Barrier(bcComm);
     time = clock() - time;
-    cout << rank << ": Scatter time is " << double( time ) / CLOCKS_PER_SEC << " seconds.\n";
+    cout << rank << ": Scatter time is " << double(time) / CLOCKS_PER_SEC << " seconds.\n";
   }
   else {
-    bcComm.Barrier();
-    testScatter( rank, bcComm );
-    bcComm.Barrier();
+    MPI_Barrier(bcComm);
+    testScatter(rank, bcComm);
+    MPI_Barrier(bcComm);
   }
 
 
@@ -142,76 +145,78 @@ int main( int argc, char* argv[] )
     }
   }
 
-  MPI::Finalize();
+  MPI_Finalize();
 
   return 0;
 }
 
-void testBroadcastRoot( int numNode, LineList& lineList, MPI::Intracomm& comm )
+void testBroadcastRoot(int numNode, LineList& lineList, MPI_Comm comm)
 {
   unsigned long long numLine = lineList.size();
-  comm.Bcast( &numLine, 1, MPI::UNSIGNED_LONG_LONG, 0 );
-  for( auto it = lineList.begin(); it != lineList.end(); it++ ) {
-    comm.Bcast( ( char* ) *it, LINE_SIZE, MPI::UNSIGNED_CHAR, 0 );      
+  MPI_Bcast(&numLine, 1, MPI_UNSIGNED_LONG_LONG, 0, comm);
+  for (auto it = lineList.begin(); it != lineList.end(); it++) {
+  MPI_Bcast(*it, LINE_SIZE, MPI_UNSIGNED_CHAR, 0, comm);
   }
 }
 
-void testBroadcast( int rank, MPI::Intracomm& comm )
+
+
+void testBroadcast(int rank, MPI_Comm comm)
 {
   unsigned long long numLine;
-  comm.Bcast( &numLine, 1, MPI::UNSIGNED_LONG_LONG, 0 );
-  for( unsigned long long i = 0; i < numLine; i++ ) {
-    unsigned char t[ LINE_SIZE ];
-    comm.Bcast( ( char* ) t, LINE_SIZE, MPI::UNSIGNED_CHAR, 0 );
+  MPI_Bcast(&numLine, 1, MPI_UNSIGNED_LONG_LONG, 0, comm);
+  for (unsigned long long i = 0; i < numLine; i++) {
+  unsigned char t[LINE_SIZE];
+  MPI_Bcast(t, LINE_SIZE, MPI_UNSIGNED_CHAR, 0, comm);
   }
 }
 
-void testUnicastRoot( int numNode, LineList& lineList, MPI::Intracomm& comm )
+void testUnicastRoot( int numNode, LineList& lineList, MPI_Comm comm )
 {
   unsigned long long numLine = lineList.size();
   for( int nid = 1; nid < numNode; nid++ ) {
-    comm.Send( &numLine, 1, MPI::UNSIGNED_LONG_LONG, nid, 0 );
-    for( auto it = lineList.begin(); it != lineList.end(); it++ ) {
-      comm.Send( ( char* ) *it, LINE_SIZE, MPI::UNSIGNED_CHAR, nid, 0 );      
-    }  
+  MPI_Send( &numLine, 1, MPI_UNSIGNED_LONG_LONG, nid, 0, comm );
+  for( auto it = lineList.begin(); it != lineList.end(); it++ ) {
+  MPI_Send( ( char* ) *it, LINE_SIZE, MPI_UNSIGNED_CHAR, nid, 0, comm );
+  }
   }
 }
 
-void testUnicast( int rank, MPI::Intracomm& comm )
+void testUnicast(int rank, MPI_Comm comm)
 {
   unsigned long long numLine;
-  comm.Recv( &numLine, 1, MPI::UNSIGNED_LONG_LONG, 0, 0 );
-  for( unsigned long long i = 0; i < numLine; i++ ) {
-    unsigned char t[ LINE_SIZE ];
-    comm.Recv( ( char* ) t, LINE_SIZE, MPI::UNSIGNED_CHAR, 0, 0 );
-  }  
+  MPI_Recv(&numLine, 1, MPI_UNSIGNED_LONG_LONG, 0, 0, comm, MPI_STATUS_IGNORE);
+  for (unsigned long long i = 0; i < numLine; i++) {
+  unsigned char t[LINE_SIZE];
+  MPI_Recv(t, LINE_SIZE, MPI_UNSIGNED_CHAR, 0, 0, comm, MPI_STATUS_IGNORE);
+  }
 }
 
-void testScatterRoot( int numNode, LineList& mlineList, MPI::Intracomm& comm )
+void testScatterRoot(int numNode, LineList& mlineList, MPI_Comm comm)
 {
-  unsigned long long numLine[ numNode ];
-  for( int i = 0; i < numNode; i++ ) {
-    numLine[i] = mlineList.size();
+  unsigned long long numLine[numNode];
+  for (int i = 0; i < numNode; i++) {
+  numLine[i] = mlineList.size();
   }
   unsigned long long nl;
 
-  comm.Scatter( numLine, 1, MPI::UNSIGNED_LONG_LONG, &nl, 1, MPI::UNSIGNED_LONG_LONG, 0 );
-  for( auto it = mlineList.begin(); it != mlineList.end(); it++ ) {
-    unsigned char t[ LINE_SIZE ];
-    comm.Scatter( *it, LINE_SIZE, MPI::UNSIGNED_CHAR, t, LINE_SIZE, MPI::UNSIGNED_CHAR, 0 );
+  MPI_Scatter(numLine, 1, MPI_UNSIGNED_LONG_LONG, &nl, 1, MPI_UNSIGNED_LONG_LONG, 0, comm);
+  for (auto it = mlineList.begin(); it != mlineList.end(); it++) {
+  unsigned char t[LINE_SIZE];
+  MPI_Scatter(*it, LINE_SIZE, MPI_UNSIGNED_CHAR, t, LINE_SIZE, MPI_UNSIGNED_CHAR, 0, comm);
   }
 }
 
-void testScatter( int rank, MPI::Intracomm& comm )
+
+void testScatter(int rank, MPI_Comm comm)
 {
-  unsigned long long numLine;
-  comm.Scatter( NULL, 0, MPI::UNSIGNED_LONG_LONG, &numLine, 1, MPI::UNSIGNED_LONG_LONG, 0 );
-  for( unsigned long long i = 0; i < numLine; i++ ) {
-    unsigned char t[ LINE_SIZE ];
-    comm.Scatter( NULL, 0, MPI::UNSIGNED_CHAR, t, LINE_SIZE, MPI::UNSIGNED_CHAR, 0 );
-  }
+unsigned long long numLine;
+MPI_Scatter(NULL, 0, MPI_UNSIGNED_LONG_LONG, &numLine, 1, MPI_UNSIGNED_LONG_LONG, 0, comm);
+for (unsigned long long i = 0; i < numLine; i++) {
+unsigned char t[LINE_SIZE];
+MPI_Scatter(NULL, 0, MPI_UNSIGNED_CHAR, t, LINE_SIZE, MPI_UNSIGNED_CHAR, 0, comm);
 }
-
+}
 
 
 

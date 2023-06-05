@@ -80,6 +80,7 @@ void Worker::run()
   for (unsigned int i = 1; i <= conf->getNumReducer(); i++) { // 遍历所有的 reducer 节点
     if (i == rank) { // 对于发送者节点（即 i == rank 的情况），会将本节点的中间结果消息发送给其他所有的 Reducer 节点，包括它自己
       clock_t txTime = 0; // 用于记录发送数据所花费的时间
+      
       unsigned long long tolSize = 0; // 用于记录发送数据的总大小
       MPI_Barrier(MPI_COMM_WORLD); // 调用 MPI_Barrier 函数，等待所有的节点都执行到这里
       time = clock(); // 记录程序开始执行 Shuffle 阶段时的时间
